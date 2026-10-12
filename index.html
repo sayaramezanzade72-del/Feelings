@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>Feelings Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:12px;font-family:Arial,Helvetica,sans-serif;
+ text-align:center;direction:ltr;color:#30345c;
+ background:linear-gradient(135deg,#dff7ff,#f7e7ff,#fff2d0)
+}
+h1{color:#7051c6;font-size:clamp(27px,6vw,40px)}
+.teacher{color:#db578e;font-weight:bold;margin:10px}
+.panel{
+ max-width:760px;margin:15px auto;background:white;padding:20px;
+ border-radius:24px;box-shadow:0 8px 25px #44336620
+}
+button,input{font:inherit}
+button{
+ border:0;border-radius:13px;padding:12px 17px;margin:5px;
+ color:white;background:#7658d5;font-weight:bold;cursor:pointer
+}
+button:disabled{opacity:.6}
+input{
+ max-width:100%;width:330px;padding:13px;border:2px solid #c9b9ff;
+ border-radius:12px;font-size:18px;text-align:center;direction:ltr
+}
+.hidden{display:none!important}
+.stats{display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;font-weight:bold}
+.progress{height:9px;background:#eee;border-radius:20px;margin:15px 0;overflow:hidden}
+#bar{height:100%;width:0;background:#35bd98}
+#picture{
+ width:min(100%,340px);height:240px;margin:12px auto;
+ background:#f4f0ff;border-radius:18px;overflow:hidden
+}
+#picture img{width:100%;height:100%;object-fit:cover;display:block}
+#word{font-size:32px;font-weight:bold;color:#7051c6;margin:12px}
+#choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.choice{
+ background:#f5f1ff;color:#30345c;border:3px solid #e4dcff;
+ padding:8px;box-shadow:none;min-width:0
+}
+.choice img{width:100%;height:120px;object-fit:cover;border-radius:9px;display:block}
+.choice span{display:block;padding:8px 2px 3px;font-size:17px;overflow-wrap:anywhere}
+.correct{border-color:#27bc8b!important;background:#e1fff4!important}
+.wrong{border-color:#f17998!important;background:#fff0f3!important}
+#feedback{min-height:30px;font-weight:bold;margin:12px}
+.green{background:#30b894}
+.pink{background:#f47ca7}
+.small{font-size:13px;color:#777}
+@media(max-width:420px){
+ body{padding:6px}.panel{padding:12px}
+ #picture{height:210px}
+ .choice img{height:100px}
+ .choice span{font-size:15px}
+}
+</style>
+</head>
+<body>
+<header>
+ <h1>Feelings Adventure</h1>
+ <div class="teacher">Teacher: Ms.Ramezanzadeh</div>
+</header>
+
+<main class="panel">
+<section id="start">
+ <h2>Ready to Play?</h2>
+ <p>Enter your name to start your adventure!</p>
+ <form id="startForm">
+  <input id="player" maxlength="24" placeholder="Your name"
+   aria-label="Your name" required autocomplete="given-name">
+  <br><button type="submit">Let's Play!</button>
+ </form>
+ <p class="small">Listen, choose, learn and spell!</p>
+</section>
+
+<section id="game" class="hidden">
+ <h2 id="welcome"></h2>
+ <div class="stats">
+  <span>Score: <b id="score">0</b></span>
+  <span>Lives: <b id="lives">5</b></span>
+  <span>Question: <b id="number">1</b>/24</span>
+ </div>
+ <div class="progress"><div id="bar"></div></div>
+ <h3 id="stage"></h3>
+ <div id="picture"></div>
+ <div id="word"></div>
+ <button id="listen" class="pink" type="button">Listen</button>
+ <div id="choices"></div>
+ <div id="spellArea" class="hidden">
+  <p>Listen carefully. Type the correct word!</p>
+  <input id="spellInput" placeholder="Type the word"
+   autocomplete="off" autocapitalize="none" spellcheck="false">
+  <br><button id="checkSpell" type="button">Check Answer</button>
+ </div>
+ <div id="feedback" aria-live="polite"></div>
+ <button id="next" class="green hidden" type="button">Next</button>
+</section>
+
+<section id="end" class="hidden">
+ <h2 id="endTitle">Amazing Job!</h2>
+ <p id="endMessage"></p>
+ <h2>Score: <span id="finalScore"></span>/240</h2>
+ <p id="stars"></p>
+ <button id="replay" type="button">Play Again</button>
+</section>
+</main>
+
+<script>
+"use strict";
+
+// English-only game. Never translate interface text.
+// Replace image URLs below with your own hosted images if desired.
+const feelings=[
+ {word:"Thirsty",image:"https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80",sentence:"I am thirsty."},
+ {word:"Hungry",image:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80",sentence:"I am hungry."},
+ {word:"Sad",image:"https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80",sentence:"I am sad."},
+ {word:"Shy",image:"https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",sentence:"I am shy."},
+ {word:"Happy",image:"https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=600&q=80",sentence:"I am happy."},
+ {word:"Scared",image:"https://images.unsplash.com/photo-1504150558240-0ef6f5c1c6df?auto=format&fit=crop&w=600&q=80",sentence:"I am scared."},
+ {word:"Sleepy",image:"https://images.unsplash.com/photo-1511295742362-92c96b8c8b13?auto=format&fit=crop&w=600&q=80",sentence:"I am sleepy."},
+ {word:"Tired",image:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=600&q=80",sentence:"I am tired."}
+];
+
+const $=id=>document.getElementById(id);
+let playerName="",score=0,lives=5,index=0,questions=[],current=null,locked=false;
+
+function shuffle(list){
+ const a=[...list];
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function makeImage(feeling,small=false){
+ const img=document.createElement("img");
+ img.src=feeling.image;
+ img.alt=feeling.word;
+ img.loading="lazy";
+ img.onerror=()=>{
+  img.onerror=null;
+  img.src="https://placehold.co/600x400/ece7ff/514080?text="+encodeURIComponent(feeling.word);
+ };
+ return img;
+}
+
+$("startForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ playerName=$("player").value.trim();
+ if(!playerName)return;
+ score=0;lives=5;index=0;
+ questions=[
+  ...shuffle(feelings).map(f=>({type:"listen",f})),
+  ...shuffle(feelings).map(f=>({type:"picture",f})),
+  ...shuffle(feelings).map(f=>({type:"spell",f}))
+ ];
+ $("start").classList.add("hidden");
+ $("end").classList.add("hidden");
+ $("game").classList.remove("hidden");
+ $("welcome").textContent="Good luck, "+playerName+"!";
+ showQuestion();
+});
+
+function speak(text){
+ if(!("speechSynthesis" in window)){
+  $("feedback").textContent="Audio is not supported in this browser.";
+  return;
+ }
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang="en-GB";u.rate=.85;
+ speechSynthesis.speak(u);
+}
+
+function updateStats(){
+ $("score").textContent=score;
+ $("lives").textContent="♥ ".repeat(lives)+"♡ ".repeat(5-lives);
+ $("number").textContent=Math.min(index+1,24);
+ $("bar").style.width=index/24*100+"%";
+}
+
+function showQuestion(){
+ if(lives<=0||index>=questions.length){endGame();return}
+ current=questions[index];locked=false;
+ $("choices").replaceChildren();
+ $("feedback").textContent="";
+ $("next").classList.add("hidden");
+ $("spellArea").classList.add("hidden");
+ $("spellInput").value="";
+ $("spellInput").disabled=false;
+ $("listen").disabled=false;
+ $("picture").replaceChildren();
+ $("word").textContent="";
+ $("listen").classList.remove("hidden");
+ const f=current.f;
+
+ if(current.type==="listen"){
+  $("stage").textContent="Stage 1: Listen and Choose";
+  $("word").textContent="Which picture can you hear?";
+  shuffle([f,...shuffle(feelings.filter(x=>x.word!==f.word)).slice(0,3)]).forEach(option=>{
+   const b=document.createElement("button");
+   b.type="button";b.className="choice";
+   b.appendChild(makeImage(option));
+   const label=document.createElement("span");
+   label.textContent="Choose";
+   b.appendChild(label);
+   b.onclick=()=>choose(option,b);
+   $("choices").appendChild(b);
+  });
+  setTimeout(()=>speak(f.word),350);
+ }
+
+ if(current.type==="picture"){
+  $("stage").textContent="Stage 2: Find the Feeling";
+  $("picture").appendChild(makeImage(f));
+  $("word").textContent=f.word;
+  $("listen").classList.add("hidden");
+  shuffle([f,...shuffle(feelings.filter(x=>x.word!==f.word)).slice(0,3)]).forEach(option=>{
+   const b=document.createElement("button");
+   b.type="button";b.className="choice";
+   b.appendChild(makeImage(option));
+   const label=document.createElement("span");
+   label.textContent=option.word;
+   b.appendChild(label);
+   b.onclick=()=>choose(option,b);
+   $("choices").appendChild(b);
+  });
+ }
+
+ if(current.type==="spell"){
+  $("stage").textContent="Stage 3: Spelling Challenge";
+  $("picture").appendChild(makeImage(f));
+  $("word").textContent="Spell the word!";
+  $("spellArea").classList.remove("hidden");
+  $("listen").textContent="Listen Again";
+  setTimeout(()=>speak(f.word),350);
+ }
+ updateStats();
+}
+
+$("listen").onclick=()=>{
+ if(current)speak(current.type==="picture"?current.f.sentence:current.f.word);
+};
+
+function choose(option,button){
+ if(locked)return;
+ if(option.word===current.f.word){
+  locked=true;score+=10;button.classList.add("correct");
+  $("feedback").textContent="Excellent! That's correct!";
+  speak("Excellent! "+current.f.word);
+  finishQuestion();
+ }else{
+  button.classList.add("wrong");button.disabled=true;
+  lives--;updateStats();
+  $("feedback").textContent="Try again!";
+  speak("Try again!");
+  if(lives<=0){locked=true;finishQuestion()}
+ }
+}
+
+$("checkSpell").onclick=checkSpelling;
+$("spellInput").onkeydown=e=>{
+ if(e.key==="Enter"&&!locked)checkSpelling();
+};
+
+function checkSpelling(){
+ if(locked)return;
+ if($("spellInput").value.trim().toLowerCase()===current.f.word.toLowerCase()){
+  locked=true;score+=10;
+  $("feedback").textContent="Perfect spelling! Well done!";
+  speak("Well done! "+current.f.word);
+  finishQuestion();
+ }else{
+  lives--;updateStats();
+  if(lives<=0){
+   locked=true;
+   $("feedback").textContent="Good try! The word was "+current.f.word+".";
+   finishQuestion();
+  }else{
+   $("feedback").textContent="Not quite! Listen and try again.";
+   $("spellInput").select();speak("Try again!");
+  }
+ }
+}
+
+function finishQuestion(){
+ $("choices").querySelectorAll("button").forEach(b=>b.disabled=true);
+ $("spellInput").disabled=true;
+ $("listen").disabled=true;
+ $("next").classList.remove("hidden");
+ updateStats();
+}
+
+$("next").onclick=()=>{
+ index++;
+ showQuestion();
+};
+
+function endGame(){
+ $("game").classList.add("hidden");
+ $("end").classList.remove("hidden");
+ $("bar").style.width="100%";
+ $("finalScore").textContent=score;
+ $("endTitle").textContent=lives>0?"Amazing Job, "+playerName+"!":"Good Try, "+playerName+"!";
+ $("endMessage").textContent="You completed the Feelings Adventure!";
+ $("stars").textContent=score>=192?"Fantastic work!":score>=120?"Great effort!":"Keep practicing!";
+ speak(lives>0?"Amazing job, "+playerName+"!":"Good try, "+playerName+"!");
+}
+
+$("replay").onclick=()=>{
+ if("speechSynthesis" in window)speechSynthesis.cancel();
+ $("end").classList.add("hidden");
+ $("start").classList.remove("hidden");
+ $("player").value="";
+ $("player").focus();
+};
+</script>
+</body>
+</html>
