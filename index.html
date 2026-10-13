@@ -1,0 +1,816 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feelings Adventure</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  background: linear-gradient(135deg, #d9f4ff, #f7e5ff, #fff1cf);
+  color: #263653;
+  text-align: center;
+}
+
+header {
+  padding: 16px 10px 8px;
+}
+
+h1 {
+  margin: 4px 0;
+  color: #6c4bd2;
+  font-size: clamp(25px, 6vw, 38px);
+}
+
+.subtitle {
+  margin: 6px 0;
+  color: #53627c;
+  font-size: 15px;
+}
+
+.game {
+  width: min(960px, 96%);
+  margin: 10px auto 20px;
+  padding: 15px;
+  background: rgba(255,255,255,.92);
+  border: 3px solid #fff;
+  border-radius: 25px;
+  box-shadow: 0 8px 25px rgba(66, 61, 130, .15);
+}
+
+.top-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-pill {
+  padding: 9px 13px;
+  background: #f0ebff;
+  border-radius: 14px;
+  font-weight: bold;
+}
+
+#lives {
+  color: #e84b73;
+  letter-spacing: 3px;
+  font-size: 20px;
+}
+
+.progress-track {
+  height: 12px;
+  background: #e9e7f4;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+#progress {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #8b6cf6, #42c9b3);
+  transition: width .3s;
+}
+
+#stage {
+  margin: 10px 0;
+  color: #7254d6;
+  font-size: clamp(19px, 4vw, 25px);
+}
+
+#instruction {
+  margin: 7px 0 12px;
+  color: #65718b;
+  font-size: 15px;
+}
+
+.word-box {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  margin: 10px auto 15px;
+  width: min(650px, 100%);
+  border: 3px dashed #9c83f4;
+  border-radius: 20px;
+  background: #f4efff;
+  color: #5b3bc0;
+  font-size: clamp(23px, 5vw, 34px);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+#picture-area {
+  min-height: 10px;
+}
+
+.main-picture {
+  width: min(230px, 60vw);
+  height: 190px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.choice {
+  min-width: 0;
+  border: 3px solid #e7e0ff;
+  border-radius: 18px;
+  background: #fff;
+  padding: 9px 5px 11px;
+  cursor: pointer;
+  color: #35415c;
+  font: inherit;
+  font-weight: bold;
+  transition: transform .15s, border-color .15s, background .15s;
+}
+
+.choice:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: #9b80f5;
+  background: #faf8ff;
+}
+
+.choice img {
+  display: block;
+  width: 100%;
+  height: 125px;
+  object-fit: contain;
+  margin: 0 auto 7px;
+}
+
+.choice span {
+  display: block;
+  font-size: clamp(12px, 2.5vw, 17px);
+  overflow-wrap: anywhere;
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.choice.correct {
+  border-color: #27b88a;
+  background: #e2fff3;
+}
+
+.choice.wrong {
+  border-color: #f16a7c;
+  background: #fff0f2;
+}
+
+.feedback {
+  min-height: 35px;
+  margin: 12px 0;
+  font-size: clamp(17px, 4vw, 22px);
+  font-weight: bold;
+}
+
+.feedback.good {
+  color: #15966e;
+}
+
+.feedback.bad {
+  color: #df4664;
+}
+
+.action-button {
+  border: 0;
+  border-radius: 15px;
+  padding: 12px 22px;
+  background: #7958e8;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.action-button:hover {
+  background: #6240cf;
+}
+
+.secondary {
+  background: #23ad9b;
+}
+
+.secondary:hover {
+  background: #138e80;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.spelling-area {
+  margin: 15px auto;
+  width: min(420px, 100%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+#spelling-input {
+  min-width: 0;
+  flex: 1;
+  padding: 13px;
+  border: 2px solid #c8b9ff;
+  border-radius: 13px;
+  font-size: 20px;
+  text-align: center;
+  outline: none;
+}
+
+#spelling-input:focus {
+  border-color: #7958e8;
+}
+
+.footer {
+  padding: 10px;
+  font-size: 13px;
+  color: #78809a;
+}
+
+.end-screen {
+  padding: 25px 10px;
+}
+
+.end-screen h2 {
+  font-size: clamp(28px, 6vw, 40px);
+  color: #6c4bd2;
+}
+
+.end-screen p {
+  font-size: 20px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .game {
+    padding: 11px;
+  }
+
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .choice img {
+    height: 125px;
+  }
+
+  .main-picture {
+    height: 165px;
+  }
+
+  .top-info {
+    justify-content: center;
+  }
+
+  .info-pill {
+    padding: 8px 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🌈 Feelings Adventure 🌈</h1>
+  <p class="subtitle">Listen, look, learn and have fun!</p>
+</header>
+
+<main class="game">
+
+  <div id="game-screen">
+
+    <div class="top-info">
+      <div class="info-pill">⭐ Score: <span id="score">0</span></div>
+      <div class="info-pill">❤️ Lives: <span id="lives">❤️❤️❤️❤️❤️</span></div>
+      <div class="info-pill">Question: <span id="question-number">1 / 24</span></div>
+    </div>
+
+    <div class="progress-track">
+      <div id="progress"></div>
+    </div>
+
+    <h2 id="stage">Stage 1: Listen and Choose</h2>
+    <p id="instruction">Read the word and choose the correct picture!</p>
+
+    <div id="word" class="word-box">HAPPY</div>
+
+    <div id="picture-area"></div>
+
+    <div id="choices" class="choices"></div>
+
+    <div id="spelling-area" class="spelling-area hidden">
+      <input
+        id="spelling-input"
+        type="text"
+        placeholder="Type the feeling..."
+        autocomplete="off"
+        autocapitalize="none"
+        aria-label="Type the feeling"
+      >
+      <button id="check-spelling" class="action-button">Check ✓</button>
+    </div>
+
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+
+    <div>
+      <button id="listen-button" class="action-button secondary">
+        🔊 Listen Again
+      </button>
+      <button id="restart-button" class="action-button">
+        ↻ Restart Game
+      </button>
+    </div>
+
+  </div>
+
+  <div id="end-screen" class="end-screen hidden">
+    <h2 id="end-title">Amazing Job! 🎉</h2>
+    <p id="end-message"></p>
+    <p id="final-score"></p>
+    <button id="play-again" class="action-button">Play Again ↻</button>
+  </div>
+
+</main>
+
+<div class="footer">Teacher: Ms.Ramezanzadeh</div>
+
+<script>
+"use strict";
+
+const feelings = [
+  {
+    word: "Thirsty",
+    sentence: "I am thirsty.",
+    file: "thirsty.jpg"
+  },
+  {
+    word: "Hungry",
+    sentence: "I am hungry.",
+    file: "hungry.jpg"
+  },
+  {
+    word: "Sad",
+    sentence: "I am sad.",
+    file: "sad.jpg"
+  },
+  {
+    word: "Shy",
+    sentence: "I am shy.",
+    file: "shy.jpg"
+  },
+  {
+    word: "Happy",
+    sentence: "I am happy.",
+    file: "happy.jpg"
+  },
+  {
+    word: "Scared",
+    sentence: "I am scared.",
+    file: "scared.jpg"
+  },
+  {
+    word: "Sleepy",
+    sentence: "I am sleepy.",
+    file: "sleepy.jpg"
+  },
+  {
+    word: "Tired",
+    sentence: "I am tired.",
+    file: "tired.jpg"
+  }
+];
+
+const TOTAL_QUESTIONS = feelings.length * 3;
+const STARTING_LIVES = 5;
+
+let questions = [];
+let questionIndex = 0;
+let score = 0;
+let lives = STARTING_LIVES;
+let locked = false;
+let gameEnded = false;
+let speechVersion = 0;
+
+const $ = id => document.getElementById(id);
+
+function shuffle(items) {
+  const result = [...items];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
+function makeQuestions() {
+  const stage1 = shuffle(feelings).map(feeling => ({
+    type: "word",
+    feeling
+  }));
+
+  const stage2 = shuffle(feelings).map(feeling => ({
+    type: "sentence",
+    feeling
+  }));
+
+  const stage3 = shuffle(feelings).map(feeling => ({
+    type: "spelling",
+    feeling
+  }));
+
+  return [...stage1, ...stage2, ...stage3];
+}
+
+function stopSpeech() {
+  speechVersion++;
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speak(text) {
+  stopSpeech();
+
+  if (!("speechSynthesis" in window)) return;
+
+  const version = speechVersion;
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  utterance.lang = "en-GB";
+  utterance.rate = 0.85;
+  utterance.pitch = 1;
+
+  setTimeout(() => {
+    if (version !== speechVersion || gameEnded) return;
+    window.speechSynthesis.speak(utterance);
+  }, 150);
+}
+
+function imagePath(feeling) {
+  return "images/" + feeling.file;
+}
+
+function makeImage(feeling, className = "") {
+  const img = document.createElement("img");
+
+  img.src = imagePath(feeling);
+  img.alt = feeling.word;
+  img.className = className;
+  img.loading = "eager";
+
+  img.onerror = function () {
+    this.alt = feeling.word + " image not found";
+    this.style.opacity = "0.25";
+  };
+
+  return img;
+}
+
+function updateInfo() {
+  $("score").textContent = score;
+  $("lives").textContent =
+    "❤️".repeat(lives) + "🤍".repeat(STARTING_LIVES - lives);
+
+  $("question-number").textContent =
+    Math.min(questionIndex + 1, TOTAL_QUESTIONS) +
+    " / " + TOTAL_QUESTIONS;
+
+  $("progress").style.width =
+    (questionIndex / TOTAL_QUESTIONS * 100) + "%";
+}
+
+function clearQuestion() {
+  $("picture-area").innerHTML = "";
+  $("choices").innerHTML = "";
+  $("feedback").textContent = "";
+  $("feedback").className = "feedback";
+  $("spelling-input").value = "";
+  $("spelling-area").classList.add("hidden");
+  $("listen-button").classList.remove("hidden");
+}
+
+function showQuestion() {
+  if (lives <= 0) {
+    endGame(false);
+    return;
+  }
+
+  if (questionIndex >= TOTAL_QUESTIONS) {
+    endGame(true);
+    return;
+  }
+
+  locked = false;
+  clearQuestion();
+  stopSpeech();
+  updateInfo();
+
+  const current = questions[questionIndex];
+  const feeling = current.feeling;
+
+  if (current.type === "word") {
+    // STAGE 1: Show the feeling word.
+    $("stage").textContent = "Stage 1: Listen and Choose";
+    $("instruction").textContent =
+      "Read the word and choose the correct picture!";
+    $("word").textContent = feeling.word.toUpperCase();
+
+    createPictureChoices(feeling);
+    speak(feeling.word);
+  }
+
+  else if (current.type === "sentence") {
+    // STAGE 2: Show and read a complete sentence.
+    // Do not show the target picture separately.
+    $("stage").textContent = "Stage 2: Listen and Find";
+    $("instruction").textContent =
+      "Read and listen to the sentence. Find the correct picture!";
+    $("word").textContent = feeling.sentence;
+
+    createPictureChoices(feeling);
+    speak(feeling.sentence);
+  }
+
+  else if (current.type === "spelling") {
+    // STAGE 3: Show a picture, but hide the answer word.
+    $("stage").textContent = "Stage 3: Spelling Challenge";
+    $("instruction").textContent =
+      "Look at the picture and type the feeling!";
+    $("word").textContent = "What is the feeling?";
+
+    $("picture-area").appendChild(
+      makeImage(feeling, "main-picture")
+    );
+
+    $("choices").innerHTML = "";
+    $("listen-button").classList.add("hidden");
+    $("spelling-area").classList.remove("hidden");
+    $("spelling-input").focus();
+
+    speak(feeling.sentence);
+  }
+}
+
+function createPictureChoices(correctFeeling) {
+  const distractors = shuffle(
+    feelings.filter(item => item.word !== correctFeeling.word)
+  ).slice(0, 3);
+
+  const options = shuffle([correctFeeling, ...distractors]);
+
+  options.forEach(option => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "choice";
+
+    const img = makeImage(option);
+    const label = document.createElement("span");
+
+    label.textContent = option.word;
+
+    button.appendChild(img);
+    button.appendChild(label);
+
+    button.addEventListener("click", () => {
+      checkChoice(option, correctFeeling, button);
+    });
+
+    $("choices").appendChild(button);
+  });
+}
+
+function disableChoices() {
+  document.querySelectorAll(".choice").forEach(button => {
+    button.disabled = true;
+  });
+}
+
+function showFeedback(message, type) {
+  $("feedback").textContent = message;
+  $("feedback").className = "feedback " + type;
+}
+
+const positiveMessages = [
+  "Excellent! 🌟",
+  "Great job! 🎉",
+  "Well done! 👏",
+  "Fantastic! 🥳",
+  "You got it! ⭐",
+  "Amazing! 💜"
+];
+
+const tryAgainMessages = [
+  "Try again! 💪",
+  "Almost! Try again! 🌈",
+  "Keep going! ⭐",
+  "You can do it! 💛"
+];
+
+function randomMessage(messages) {
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+function checkChoice(selected, correct, button) {
+  if (locked || gameEnded) return;
+
+  if (selected.word === correct.word) {
+    locked = true;
+    disableChoices();
+    button.classList.add("correct");
+
+    score += 10;
+    updateInfo();
+
+    showFeedback(randomMessage(positiveMessages), "good");
+    speak("Excellent!");
+
+    setTimeout(nextQuestion, 1100);
+  } else {
+    button.classList.add("wrong");
+    button.disabled = true;
+
+    lives--;
+    updateInfo();
+
+    if (lives <= 0) {
+      locked = true;
+      showFeedback("Game Over! Try again! 💜", "bad");
+      stopSpeech();
+
+      setTimeout(() => endGame(false), 900);
+      return;
+    }
+
+    showFeedback(randomMessage(tryAgainMessages), "bad");
+    speak("Try again!");
+  }
+}
+
+function checkSpelling() {
+  if (locked || gameEnded) return;
+
+  const current = questions[questionIndex];
+
+  if (!current || current.type !== "spelling") return;
+
+  const answer = $("spelling-input").value
+    .trim()
+    .toLowerCase();
+
+  if (!answer) {
+    showFeedback("Type your answer first! ✏️", "bad");
+    return;
+  }
+
+  const correct = current.feeling.word.toLowerCase();
+
+  if (answer === correct) {
+    locked = true;
+
+    score += 10;
+    updateInfo();
+
+    $("spelling-input").disabled = true;
+    $("check-spelling").disabled = true;
+
+    showFeedback(randomMessage(positiveMessages), "good");
+    speak("Excellent!");
+
+    setTimeout(() => {
+      $("spelling-input").disabled = false;
+      $("check-spelling").disabled = false;
+      nextQuestion();
+    }, 1100);
+  } else {
+    lives--;
+    updateInfo();
+
+    $("spelling-input").value = "";
+    $("spelling-input").focus();
+
+    if (lives <= 0) {
+      locked = true;
+      showFeedback("Game Over! Try again! 💜", "bad");
+      stopSpeech();
+
+      setTimeout(() => endGame(false), 900);
+      return;
+    }
+
+    showFeedback(randomMessage(tryAgainMessages), "bad");
+    speak("Try again!");
+  }
+}
+
+function nextQuestion() {
+  if (gameEnded) return;
+
+  stopSpeech();
+  questionIndex++;
+  showQuestion();
+}
+
+function endGame(won) {
+  if (gameEnded) return;
+
+  gameEnded = true;
+  locked = true;
+  stopSpeech();
+
+  $("game-screen").classList.add("hidden");
+  $("end-screen").classList.remove("hidden");
+
+  if (won) {
+    $("end-title").textContent = "Amazing Job! 🏆🎉";
+    $("end-message").textContent =
+      "You finished all three stages! You are a Feelings Champion!";
+  } else {
+    $("end-title").textContent = "Game Over! 💜";
+    $("end-message").textContent =
+      "Good try! Keep practicing and come back stronger!";
+  }
+
+  $("final-score").textContent =
+    "Your Score: " + score + " / " + (TOTAL_QUESTIONS * 10);
+
+  $("progress").style.width =
+    (questionIndex / TOTAL_QUESTIONS * 100) + "%";
+}
+
+function restartGame() {
+  stopSpeech();
+
+  questionIndex = 0;
+  score = 0;
+  lives = STARTING_LIVES;
+  locked = false;
+  gameEnded = false;
+  questions = makeQuestions();
+
+  $("game-screen").classList.remove("hidden");
+  $("end-screen").classList.add("hidden");
+
+  $("spelling-input").disabled = false;
+  $("check-spelling").disabled = false;
+
+  showQuestion();
+}
+
+$("listen-button").addEventListener("click", () => {
+  if (locked || gameEnded) return;
+
+  const current = questions[questionIndex];
+  if (!current) return;
+
+  if (current.type === "word") {
+    speak(current.feeling.word);
+  } else if (current.type === "sentence") {
+    speak(current.feeling.sentence);
+  }
+});
+
+$("check-spelling").addEventListener("click", checkSpelling);
+
+$("spelling-input").addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    checkSpelling();
+  }
+});
+
+$("restart-button").addEventListener("click", restartGame);
+$("play-again").addEventListener("click", restartGame);
+
+restartGame();
+</script>
+
+</body>
+</html>
